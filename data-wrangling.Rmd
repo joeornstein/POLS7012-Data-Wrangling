@@ -1,0 +1,268 @@
+---
+title: "POLS 7012 Week 4: Data Wrangling"
+author: "Joe Ornstein"
+date: "September 16, 2020"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+bibliography: 'refs.bib'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+*In this document, we'll introduce the `R` code you need to successfully "wrangle" messy datasets into a form that is useful for your analyses. If you're unfamiliar with the word "wrangle", here's an illustration from the wonderful [Allison Horst](https://github.com/allisonhorst/stats-illustrations):*
+
+![](img/data_cowboy.png)
+
+
+*By the end of this week, you will be able to...*
+
+- *Import data from multiple formats*
+- *Turn messy data into "tidy" data*
+- *Merge two or more datasets together*
+- *Reformat variables and create new ones*
+- *Compute descriptive statistics and summary tables*
+
+*When you see an indented block like this...*
+
+> **Exercise**
+> 
+> Edit the "author" field in the header to include your name too!
+
+*...that's your queue to open up the `.Rmd` file and practice writing your own code!*
+
+*That's all I have to say by way of introduction. Have fun!*
+
+# Introduction
+
+Statistics is the plural of **statistic**. A **statistic** is a quantity computed from observed data. We typically compute these statistics for one of two reasons:
+
+  1. To describe the sample we have (**descriptive statistics**)
+  2. To make inferences about the population that the sample was drawn from (**inferential statistics**)
+  
+This week our focus is on the first purpose -- describing the sample we have. We'll do more with inferential statistics once we've learned some probability theory.
+
+## The Workflow
+
+Here's a diagram I like from [R4DS](https://r4ds.had.co.nz/), made pretty by [Allison Horst](https://github.com/allisonhorst/stats-illustrations).
+
+![](img/environmental-data-science-r4ds-general.png)
+
+
+First, load the `tidyverse` package. By loading the package, you get access to all of the functions included with it. And `tidyverse` contains an enormous set of useful functions for manipulating, tidying, and visualzing data (you've already seen `ggplot2`). You can learn more about the package [here](https://www.tidyverse.org/). 
+
+```{r load tidyverse}
+library(tidyverse)
+```
+
+# Importing Data
+
+The first step in any data analysis is getting the data. Here's how you do that.
+
+## RData and RDS
+
+Previously, I've shown you the `load()` function, which takes `RData` files and loads them into `R`. Pretty straightforward, because the data is already in the `RData` format.
+
+```{r load function}
+load('data/World_Values_Survey_Wave_7_Sample.RData')
+
+wvs[1:10, 1:5] # display the first 10 rows and first 5 columns
+```
+
+The `save()` function saves one or more R objects.
+
+```{r save function}
+one_through_twenty <- 1:20
+colors <- c('red', 'blue', 'orange', 'yellow', 'mauve', 'taupe')
+colors_and_numbers <- data.frame(colors, numbers = 1:length(colors))
+
+# save multiple R objects to the same RData file
+save(one_through_twenty, colors, colors_and_numbers,
+     file = 'data/lots_of_data.RData')
+```
+
+If you only want to save a single R object, you could save it as an `.RDS` file, like so:
+
+```{r RDS}
+# save the object one_through_twenty to an .RDS file in the data folder
+write_rds(one_through_twenty, path = 'data/one-through-twenty.RDS')
+
+x <- read_rds('data/one-through-twenty.RDS')
+
+x
+```
+
+
+## CSV
+
+Comma-separated value files are a common way to store tidy data. They're just plain text files where the columns are separated by commas and the rows are separated by line breaks, like this:
+
+```
+person, class, role, math_skillz
+Joe, POLS 7012, instructor, 9001
+Elise, POLS 7012, student, 1337
+Sean, POLS 7012, student, 1337
+```
+
+Use the `write_csv` and `read_csv` functions write and read `.csv` files.  
+
+> **Exercise:**
+>
+> Write the `cars` dataframe to a csv file in your data/ folder called `cars.csv`. You should be able to open the file with any spreadsheet software, like Excel. Then read it back into an object called `cars2`. 
+
+```{r exercise code}
+
+```
+
+## Other formats
+
+Over the course of your career, you may need to access datasets stored in a variety of formats. Fortunately, `R` can read just about anything. For example, maybe you want to access a dataset that someone saved from Stata^[Boo Stata it costs money and has weird syntax!]. You can do so with the `readstata13` package and the `read.dta13()` function.
+
+> **Exercise**
+>
+> There is a Stata file in the data/ folder called `primary_analysis.dta`.^[For what it's worth, this is the replication dataset for @hallWhatHappensWhen2015.] Read it into R (if you haven't installed the `readstata13` package, you can do so from the console). Then save it as one of those nicer formats above. 
+
+# Pipes
+
+![](img/MagrittePipe.jpg)
+
+Much of the `tidyverse` is designed to work well with an operator called the **pipe**. Recall that functions take inputs and convert them into outputs:
+
+```{r functions}
+x <- c(1,3,5,8,3,10,NA)
+
+length(x)
+```
+
+The `length()` function takes a vector (`x`) and outputs the number of entries. The **pipe** operator (`%>%`) just takes that syntax and flips it. Objects to the left of the pipe are used as the first input to the function on the right of the pipe.
+
+```{r pipe 1}
+x %>% length
+```
+
+Read that expression as "take the object `x` and use it as the first input in the `length` function.
+
+For a single function like that, using pipes is kind of silly. But it becomes really useful when you want to compute a *series* of functions, where the output of one becomes the input for another. For example, suppose I wanted to know how many unique, non-empty entries there are in `x`. To do that, I first need to remove the `NA`, then find the `unique()` values, then take the `length()`:
+
+```{r nested functions}
+x1 <- na.omit(x)
+
+x2 <- unique(x1)
+
+length(x2)
+
+# Or, alternatively
+length(unique(na.omit(x)))
+```
+
+But that's kind of hard to read, and it's easy for errors to slip in, so instead we could use pipes:
+
+```{r pipe 2}
+x %>% 
+  na.omit %>% 
+  unique %>% 
+  length
+```
+
+Much nicer. And you'll see that it's a pretty powerful way to express a series of operations when we're transforming and summarizing data.
+
+# Tidy Data
+
+
+
+# Transforming Data
+
+Once you've imported your dataset(s) and checked to make sure everything is tidy, 
+
+## `filter` and `select`
+
+![](img/dplyr_filter.jpg)
+
+## `pivot_long` and `pivot_wide`
+
+## `mutate`
+
+To create new variables, we use the `mutate` function. Just 
+
+```{r mutate}
+# data <- wvs %>% 
+#   mutate()
+```
+
+
+![](img/dplyr_mutate.png)
+
+
+
+![](img/continuous_discrete.png)
+
+## Recoding
+
+There are a bunch of ways to recode variables if you want them in a different format. I showed you one in the `ggplot2` demo:
+
+```{r old recode}
+
+# load the ANES pilot data
+load('data/anes_pilot_2019.RData')
+
+# Show the first 10 rows of selected variables
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem) %>% 
+  head(10)
+
+# Recode data using conditional statements and indices
+data$partisanship <- data$vote20dem
+data$partisanship[data$vote20dem == 1] <- "Democrat"
+data$partisanship[data$vote20dem == 2] <- "Republican"
+data$partisanship[data$vote20dem == 3] <- "Neither"
+data$partisanship[data$vote20dem == -7] <- NA
+
+# look at it again
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem, partisanship) %>% 
+  head(10)
+```
+
+
+
+`case_when()`. I just learned about this one, so bear with me. But I think if you're comfortable with case_when, then you can do a **lot** of recoding tasks. 
+
+
+![](img/dplyr_case_when.png)
+```{r recode with case_when}
+# reload the ANES pilot data
+load('data/anes_pilot_2019.RData')
+
+# recode with case_when
+data <- data %>% 
+  mutate(partisanship = case_when(vote20dem == 1 ~ 'Democrat',
+                                  vote20dem == 2 ~ 'Republican',
+                                  vote20dem == 3 ~ 'Neither'))
+
+# look at it again!
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem, partisanship) %>% 
+  head(10)
+```
+
+Gosh that's a lot tidier...
+
+
+## Conditional Statements
+
+`if_else`
+
+# Functions
+
+
+
+# Loops
+
+![](img/monster_for_loop.png)
+
+# References
