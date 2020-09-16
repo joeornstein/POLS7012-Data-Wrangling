@@ -17,7 +17,7 @@ opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 *In this document, we'll introduce the `R` code you need to successfully "wrangle" messy datasets into a form that is useful for your analyses. If you're unfamiliar with the word "wrangle", here's an illustration from the wonderful [Allison Horst](https://github.com/allisonhorst/stats-illustrations):*
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/data_cowboy.png)
+![](img/data_cowboy.png)
 
 
 *By the end of this week, you will be able to...*
@@ -28,15 +28,13 @@ opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 - *Reformat variables and create new ones*
 - *Compute descriptive statistics and summary tables*
 
-*When you see an indented block like this...*
+*Throughout the text, you may see indented blocks like this...*
 
 > **Exercise**
 > 
 > Edit the "author" field in the header to include your name too!
 
-*...that's your queue to open up the `.Rmd` file and practice writing your own code!*
-
-*That's all I have to say by way of introduction. Have fun!*
+*That's your queue to open up the `.Rmd` file and practice writing your own code!*
 
 # Introduction
 
@@ -51,7 +49,7 @@ This week our focus is on the first purpose -- describing the sample we have. We
 
 Here's a diagram I like from [R4DS](https://r4ds.had.co.nz/), made pretty by [Allison Horst](https://github.com/allisonhorst/stats-illustrations).
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/openscapes/environmental-data-science-r4ds-general.png)
+![](img/environmental-data-science-r4ds-general.png)
 
 
 First, load the `tidyverse` package. By loading the package, you get access to all of the functions included with it. And `tidyverse` contains an enormous set of useful functions for manipulating, tidying, and visualzing data (you've already seen `ggplot2`). You can learn more about the package [here](https://www.tidyverse.org/). 
@@ -181,7 +179,7 @@ Once you've imported your dataset(s) and checked to make sure everything is tidy
 
 ## `filter` and `select`
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_filter.jpg)
+![](img/dplyr_filter.jpg)
 
 ## `pivot_long` and `pivot_wide`
 
@@ -195,7 +193,7 @@ To create new variables, we use the `mutate` function. Just
 ```
 
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_mutate.png)
+![](img/dplyr_mutate.png)
 
 
 ## Recoding
@@ -230,7 +228,7 @@ data %>%
 `case_when()`. I just learned about this one, so bear with me. But I think if you're comfortable with case_when, then you can do a **lot** of recoding tasks. 
 
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_case_when.png)
+![](img/dplyr_case_when.png)
 ```{r recode with case_when}
 # reload the ANES pilot data
 load('data/anes_pilot_2019.RData')
@@ -256,11 +254,11 @@ Gosh that's a lot tidier...
 
 # Functions
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_across.png)
+![](img/dplyr_across.png)
 
 
 # Loops
 
-![](https://github.com/allisonhorst/stats-illustrations/raw/master/other-stats-artwork/monster_for_loop.png)
+![](img/monster_for_loop.png)
 
 # References
