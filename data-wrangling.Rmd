@@ -17,7 +17,7 @@ opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 *In this document, we'll introduce the `R` code you need to successfully "wrangle" messy datasets into a form that is useful for your analyses. If you're unfamiliar with the word "wrangle", here's an illustration from the wonderful [Allison Horst](https://github.com/allisonhorst/stats-illustrations):*
 
-![](img/data_cowboy.png)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/data_cowboy.png)
 
 
 *By the end of this week, you will be able to...*
@@ -51,7 +51,7 @@ This week our focus is on the first purpose -- describing the sample we have. We
 
 Here's a diagram I like from [R4DS](https://r4ds.had.co.nz/), made pretty by [Allison Horst](https://github.com/allisonhorst/stats-illustrations).
 
-![](img/environmental-data-science-r4ds-general.png)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/openscapes/environmental-data-science-r4ds-general.png)
 
 
 First, load the `tidyverse` package. By loading the package, you get access to all of the functions included with it. And `tidyverse` contains an enormous set of useful functions for manipulating, tidying, and visualzing data (you've already seen `ggplot2`). You can learn more about the package [here](https://www.tidyverse.org/). 
@@ -181,7 +181,7 @@ Once you've imported your dataset(s) and checked to make sure everything is tidy
 
 ## `filter` and `select`
 
-![](img/dplyr_filter.jpg)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_filter.jpg)
 
 ## `pivot_long` and `pivot_wide`
 
@@ -195,11 +195,8 @@ To create new variables, we use the `mutate` function. Just
 ```
 
 
-![](img/dplyr_mutate.png)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_mutate.png)
 
-
-
-![](img/continuous_discrete.png)
 
 ## Recoding
 
@@ -233,7 +230,7 @@ data %>%
 `case_when()`. I just learned about this one, so bear with me. But I think if you're comfortable with case_when, then you can do a **lot** of recoding tasks. 
 
 
-![](img/dplyr_case_when.png)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_case_when.png)
 ```{r recode with case_when}
 # reload the ANES pilot data
 load('data/anes_pilot_2019.RData')
@@ -259,10 +256,11 @@ Gosh that's a lot tidier...
 
 # Functions
 
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/rstats-artwork/dplyr_across.png)
 
 
 # Loops
 
-![](img/monster_for_loop.png)
+![](https://github.com/allisonhorst/stats-illustrations/raw/master/other-stats-artwork/monster_for_loop.png)
 
 # References
