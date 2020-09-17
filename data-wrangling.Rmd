@@ -112,6 +112,12 @@ Sean, POLS 7012, student, 1337
 
 Use the `write_csv` and `read_csv` functions write and read `.csv` files.  
 
+```{r write_csv}
+write_csv(wvs, path = 'data/wvs.csv')
+
+wvs <- read_csv('data/wvs.csv')
+```
+
 > **Exercise:**
 >
 > Write the `cars` dataframe to a csv file in your data/ folder called `cars.csv`. Try to to open that file with any spreadsheet software, like Excel. Then read it back into an object called `cars2`. 
@@ -189,7 +195,6 @@ Much nicer. And you'll see soon that it's a pretty powerful way to express a ser
 ```{r tidy data}
 # A tidy data frame (WHO tuberculosis cases, tidyr package)
 table1
-
 ```
 
 More often, you may find this data split up into different tables that you need to consolidate:
@@ -255,6 +260,8 @@ If you don't specify the key variables, R will try to find them for you, but it'
 >
 > What happens if you don't include 'year' in the key variables of that `left_join`? Why?
 
+<TODO: An exercise that doesn't break the Rmd Knit>
+
 
 ## Further Reading
 
@@ -314,7 +321,7 @@ tb_data %>%
 
 ## `mutate`
 
-To create new variables, we use the `mutate` function. 
+To create new variables, we use the `mutate` function.
 
 ```{r mutate}
 tb_data <- tb_data %>% 
