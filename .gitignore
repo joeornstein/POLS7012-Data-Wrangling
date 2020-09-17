@@ -5,3 +5,7 @@
 
 # don't track the knitted document
 data-wrangling.html
+
+# don't track enormous .csv files
+data/wvs.csv
+data/NMC_5_0/
