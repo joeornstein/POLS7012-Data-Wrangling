@@ -30,7 +30,15 @@ opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 *There has been so much written about data wrangling, and there are so many different packages and functions that you can use. I wrote this document to consolidate what I consider to be the most useful functions for working with quantitative political science data. We'll deal with other problems on an ad hoc basis, and I will update this document as necessary.*
 
-*Throughout the text, you may see indented blocks like this...*
+*Throughout the text, you see code chunks like this...*
+
+```{r example code chunk}
+a_vector <- c(1,2,3,6,1,8)
+
+length(a_vector)
+```
+
+*I include these to demonstrate how the functions work and what the correct syntax looks like. At the end of each section, you will see indented blocks like this...*
 
 > **Exercise**
 > 
@@ -110,12 +118,17 @@ Elise, POLS 7012, student, 1337
 Sean, POLS 7012, student, 1337
 ```
 
-Use the `write_csv` and `read_csv` functions write and read `.csv` files.  
+You can use the `write_csv` and `read_csv` functions to write and read `.csv` files.  
 
 ```{r write_csv}
-write_csv(wvs, path = 'data/wvs.csv')
+# This is the iris dataset. It has data about flowers. The head() function prints the first few rows.
+head(iris)
 
-wvs <- read_csv('data/wvs.csv')
+# Here's how we write it to a CSV
+write_csv(iris, path = 'data/iris.csv')
+
+# Here's how we read that CSV back
+iris <- read_csv('data/iris.csv')
 ```
 
 > **Exercise:**
@@ -216,11 +229,11 @@ Two problems here.
 We'll solve the first problem with **pivoting** (also known as reshaping), and the second problem with **joining** (also known as merging).
 
 
-## `pivot_longer` and `pivot_wider`
+## `pivot_longer`
 
-Consider the tuberculosis case counts in `table4a`. We can tidy it up by taking those values and putting them all into separate rows.
+Consider the tuberculosis case counts in `table4a`. We can tidy it up using the `pivot_longer()` function, which takes those values and puts them all into separate rows.
 
-```{r pivot_long}
+```{r pivot_longer}
 case_data <- table4a %>% 
   pivot_longer(cols = c(`1999`, `2000`), # which columns are we moving?
                names_to = 'year', # create a new variable called 'year' to hold the old column names
@@ -240,16 +253,20 @@ population_data <- table4b %>%
 population_data
 ```
 
+The inverse function is called `pivot_wider`. It comes up less often, but you can see how it works by typing `?pivot_wider`.
+
 ## `left_join`
 
 Now we have two data frames, but we only want one! You can merge any two dataframes together as long as they have a unique **key**  (one or more variables) that tells you which rows belong together. In this case, you want to match all of the rows that share `country` and `year`.
 
-The `left_join` function takes the dataframe on the left and joins it with every row in the righthand dataframe where it finds a match.
+The `left_join` function takes the dataframe on the left and joins it with every row in the right-hand dataframe where it finds a match on the key variables you provide.
 
 ```{r left_join}
 tb_data <- case_data %>% 
   left_join(population_data,
             by = c('country', 'year')) # specify the key variables
+
+tb_data$year <- as.numeric(tb_data$year) # this line just makes sure R codes year as a number instead of a character
 
 tb_data
 ```
@@ -258,10 +275,7 @@ If you don't specify the key variables, R will try to find them for you, but it'
 
 > **Exercise**
 >
-> What happens if you don't include 'year' in the key variables of that `left_join`? Why?
-
-<TODO: An exercise that doesn't break the Rmd Knit>
-
+> Read the CSV file `chinese_gdp` from the data/ folder. Look at it and see what's inside. Using `left_join()`, merge it with `tb_data` by country and year. What happens when `tb_data` is on the left? What happens when `tb_data` is on the right?
 
 ## Further Reading
 
@@ -278,7 +292,7 @@ We've seen `filter` before. Use it to keep rows in your data that meet certain c
 
 ![](img/dplyr_filter.jpg)
 
-Now that you know how to use pipes, it's even nicer!
+Now that you know how to use pipes, it's even nicer! Put your dataframe on the left, then pipe it into the `filter` function. Inside of the parentheses is the logical condition you're using to filter.
 
 ```{r filter}
 tb_data %>% 
@@ -294,7 +308,7 @@ tb_data %>%
 >
 > `country %in% c('Afghanistan', 'China')`
 
-The `select` operator lets you keep (or drop) columns in your dataset.
+The `select` function lets you keep (or drop) columns in your dataset.
 
 ```{r select}
 wvs %>% 
@@ -302,7 +316,7 @@ wvs %>%
   head(10) # output the first 10 rows
 
 tb_data %>% 
-  select(-cases)
+  select(-cases) # remove the cases variable
 ```
 
 > **Exercise**
@@ -321,7 +335,7 @@ tb_data %>%
 
 ## `mutate`
 
-To create new variables, we use the `mutate` function.
+To create new variables, we use the `mutate` function. Pipe the dataset on the left hand side into the `mutate` function. Inside of the parentheses, separated by commas, are the new variables you want to create. You specify what those new variables will be to the right of the `=` sign using functions and mathematical operators, like so:
 
 ```{r mutate}
 tb_data <- tb_data %>% 
