@@ -3,9 +3,11 @@
 .RData
 .Ruserdata
 
-# don't track the knitted document
+# don't track the knitted documents
 data-wrangling.html
+data-wrangling-answer-key.html
 
 # don't track enormous .csv files
 data/wvs.csv
 data/NMC_5_0/
+data/NMC_5_0.csv

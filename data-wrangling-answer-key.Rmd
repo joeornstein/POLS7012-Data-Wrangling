@@ -1,0 +1,687 @@
+---
+title: "POLS 7012 Week 4: Data Wrangling (Answer Key)"
+author: "Joe Ornstein"
+date: "September 16, 2020"
+output: 
+  html_document:
+    number_sections: true
+    toc: true
+    toc_float: true
+bibliography: 'refs.bib'
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+*In this document, we'll introduce the `R` code you need to successfully "wrangle" messy datasets into a form that is useful for your analyses. If you're unfamiliar with the word "wrangle", here's an illustration from the wonderful [Allison Horst](https://github.com/allisonhorst/stats-illustrations):*
+
+![](img/data_cowboy.png)
+
+
+*By the end of this week, you will be able to...*
+
+- *Import data from multiple formats*
+- *Turn messy data into "tidy" data*
+- *Merge two or more datasets together*
+- *Reformat variables and create new ones*
+- *Compute descriptive statistics and summary tables*
+
+*There has been so much written about data wrangling, and there are so many different packages and functions that you can use. I wrote this document to consolidate what I consider to be the most useful functions for working with quantitative political science data. We'll deal with other problems on an ad hoc basis, and I will update this document as necessary.*
+
+*Throughout the text, you see code chunks like this...*
+
+```{r example code chunk}
+a_vector <- c(1,2,3,6,1,8)
+
+length(a_vector)
+```
+
+*I include these to demonstrate how the functions work and what the correct syntax looks like. At the end of each section, you will see indented blocks like this...*
+
+> **Exercise**
+> 
+> Edit the "author" field in the header to include your name too!
+
+*That's your queue to open up the `.Rmd` file and practice writing your own code!*
+
+# Introduction
+
+Statistics is the plural of [**statistic**](https://en.wikipedia.org/wiki/Statistic), which means "a quantity computed from data". We compute statistics for one of two reasons:
+
+  1. To describe a dataset we have ([descriptive statistics](https://en.wikipedia.org/wiki/Descriptive_statistics))
+  2. To make inferences about the broader population from which that sample was drawn ([inferential statistics](https://en.wikipedia.org/wiki/Statistical_inference))
+  
+This week our focus is on the first purpose -- describing the sample we have. We'll work more with inferential statistics once we've learned some probability theory.
+
+## The Workflow
+
+Here's a diagram I like from [R4DS](https://r4ds.had.co.nz/), made pretty by [Allison Horst](https://github.com/allisonhorst/stats-illustrations), which describes the entire workflow of a data analysis project.
+
+![](img/environmental-data-science-r4ds-general.png)
+
+So far we have been working backwards, starting with tools to communicate your results, like visualization (`ggplot`) and dynamic documents (`R Markdown`). But as the swirling vortex in the center of the figure suggests, there are a whole bunch of steps we've left out. Those steps -- transforming, describing, and modeling your data -- will take up the remainder of our semester. 
+
+Today, we'll work from left to right, starting with a few techniques to import and tidy up data from the outside world, and then show you how to wrangle it into a useful format. First, load the `tidyverse` package. By loading the package, you get access to all of the functions included with it. And `tidyverse` contains an enormous set of useful functions for manipulating, tidying, and visualzing data (you've already seen `ggplot2`). You can learn more about the package [here](https://www.tidyverse.org/). 
+
+```{r load tidyverse}
+library(tidyverse)
+```
+
+# Importing Data
+
+The first step in any data analysis is getting the data. Here's how you do that.
+
+## RData and RDS
+
+Previously, I've shown you the `load()` function, which takes `RData` files and loads them into `R`. Pretty straightforward, because the data is already in the `RData` format.
+
+```{r load function}
+load('data/World_Values_Survey_Wave_7_Sample.RData')
+
+wvs[1:10, 1:5] # display the first 10 rows and first 5 columns
+```
+
+The `save()` function saves one or more R objects.
+
+```{r save function}
+one_through_twenty <- 1:20
+colors <- c('red', 'blue', 'orange', 'yellow', 'mauve', 'taupe')
+colors_and_numbers <- data.frame(colors, numbers = 1:length(colors))
+
+# save multiple R objects to the same RData file
+save(one_through_twenty, colors, colors_and_numbers,
+     file = 'data/lots_of_data.RData')
+```
+
+If you only want to save a single R object, you could save it as an `.RDS` file, like so:
+
+```{r RDS}
+# save the object one_through_twenty to an .RDS file in the data folder
+write_rds(one_through_twenty, path = 'data/one-through-twenty.RDS')
+
+x <- read_rds('data/one-through-twenty.RDS')
+
+x
+```
+
+
+## CSV
+
+Comma-separated value files are a common way to store tables of data. They're just plain text files where the columns are separated by commas and the rows are separated by line breaks, like this:
+
+```
+person, class, role, math_skillz
+Joe, POLS 7012, instructor, 9001
+Elise, POLS 7012, student, 1337
+Sean, POLS 7012, student, 1337
+```
+
+You can use the `write_csv` and `read_csv` functions to write and read `.csv` files.  
+
+```{r write_csv}
+# This is the iris dataset. It has data about flowers. The head() function prints the first few rows.
+head(iris)
+
+# Here's how we write it to a CSV
+write_csv(iris, path = 'data/iris.csv')
+
+# Here's how we read that CSV back
+iris <- read_csv('data/iris.csv')
+```
+
+> **Exercise:**
+>
+> You should have a dataframe called `cars` available to you (it comes with base `R`; just type cars into the console to see it). Write the `cars` dataframe to a csv file in your data/ folder called `cars.csv`. Try to to open that file with any spreadsheet software, like Excel. Then read it back into an object called `cars2`. 
+
+```{r cars exercise}
+# write cars to a CSV
+write_csv(cars, 'data/cars.csv')
+
+# read from CSV
+cars2 <- read_csv('data/cars.csv')
+```
+
+## Other formats
+
+Over the course of your career, you may need to access datasets stored in a variety of formats. Fortunately, `R` can read just about anything. For example, maybe you want to access a dataset that someone saved from Stata^[Boo Stata it costs money and has weird syntax!]. You can do so with the `readstata13` package and the `read.dta13()` function.
+
+> **Exercise**
+>
+> There is a Stata file in the data/ folder called `primary_analysis.dta`.^[For what it's worth, this is the replication dataset for @hallWhatHappensWhen2015.] Read it into R (if you haven't installed the `readstata13` package, you can do so from the console). Then save it as one of those nicer formats above.
+
+```{r read stata exercise}
+library(readstata13) # load library to read stata files
+
+# read from stata data file
+hall <- read.dta13('data/primary_analysis.dta')
+
+# write it to a CSV (you should be able to open that new file in Excel)
+write_csv(hall, 'data/primary_analysis.csv')
+```
+
+## Further Reading
+
+For more on importing data, see [R4DS Chapter 11](https://r4ds.had.co.nz/data-import.html).
+
+# Pipes
+
+![](img/MagrittePipe.jpg)
+
+Much of the `tidyverse` is designed to work well with an operator called the **pipe**. Recall that functions take inputs and convert them into outputs:
+
+```{r functions}
+x <- c(1,3,5,8,3,10,NA)
+
+length(x)
+```
+
+The `length()` function takes a vector (`x`) and outputs the number of entries. The **pipe** operator (`%>%`) just takes that syntax and flips it. Objects to the left of the pipe are used as the first input to the function on the right of the pipe.
+
+```{r pipe 1}
+x %>% length
+```
+
+Read that expression as "take the object `x` and use it as the first input in the `length` function.
+
+For a single function like that, using pipes is kind of silly. But it becomes really useful when you want to compute a *series* of functions, where the output of one becomes the input for another. For example, suppose I wanted to know how many unique, non-empty entries there are in `x`. To do that, I first need to remove the `NA`, then find the `unique()` values, then take the `length()`:
+
+```{r nested functions}
+x1 <- na.omit(x)
+
+x2 <- unique(x1)
+
+length(x2)
+
+# Or, alternatively
+length(unique(na.omit(x)))
+```
+
+But that's kind of hard to read, and it's easy for errors to slip in, so instead we could use pipes:
+
+```{r pipe 2}
+x %>% 
+  na.omit %>% 
+  unique %>% 
+  length
+```
+
+Much nicer. And you'll see soon that it's a pretty powerful way to express a series of operations when we're transforming and summarizing data.
+
+> **Exercise**
+>
+> Using pipes, take the `H_URBRURAL` variable from the World Values Survey dataset, remove the NA values, and compute the mean.
+
+```{r pipes exercise}
+wvs$H_URBRURAL %>% 
+  na.omit %>% 
+  mean
+```
+
+# Tidy Data
+
+![](img/tidy-1.png)
+
+**Tidy data** is a rectangular matrix, where all of the columns are variables, the rows are observations, and each value has its own cell. What is messy data? Well, you see a lot of messy data out in the wild, and you may be obliged to tidy it up. For example, here's a nice and tidy data frame of tuberculosis cases from the `tidyr` package:
+
+```{r tidy data}
+# A tidy data frame (WHO tuberculosis cases, tidyr package)
+table1
+```
+
+More often, you may find this data split up into different tables that you need to consolidate:
+
+```{r}
+# A messy data frame with case counts
+table4a 
+
+# A messy data frame with population counts
+table4b
+```
+
+Two problems here. 
+
+1. Each of the individual tables is not a tidy dataframe. The column names don't refer to different *variables*, they refer to different values of the **year** variable.  
+
+2. The data you need is spread out into two different tables.
+
+We'll solve the first problem with **pivoting** (also known as reshaping), and the second problem with **joining** (also known as merging).
+
+
+## `pivot_longer`
+
+Consider the tuberculosis case counts in `table4a`. We can tidy it up using the `pivot_longer()` function, which takes those values and puts them all into separate rows.
+
+```{r pivot_longer}
+case_data <- table4a %>% 
+  pivot_longer(cols = c(`1999`, `2000`), # which columns are we moving?
+               names_to = 'year', # create a new variable called 'year' to hold the old column names
+               values_to = 'cases') # create a new variable called 'cases' to hold the values
+
+case_data
+```
+
+It's called `pivot_longer` because it takes a "wide" dataset and creates a longer dataset with more unique rows. We can do the same with the population data.
+
+```{r pivot population}
+population_data <- table4b %>% 
+  pivot_longer(cols = c(`1999`, `2000`), 
+               names_to = 'year', 
+               values_to = 'population')
+
+population_data
+```
+
+The inverse function is called `pivot_wider`. It comes up less often, but you can see how it works by typing `?pivot_wider`.
+
+## `left_join`
+
+Now we have two data frames, but we only want one! You can merge any two dataframes together as long as they have a unique **key**  (one or more variables) that tells you which rows belong together. In this case, you want to match all of the rows that share `country` and `year`.
+
+The `left_join` function takes the dataframe on the left and joins it with every row in the right-hand dataframe where it finds a match on the key variables you provide.
+
+```{r left_join}
+tb_data <- case_data %>% 
+  left_join(population_data,
+            by = c('country', 'year')) # specify the key variables
+
+tb_data$year <- as.numeric(tb_data$year) # this line just makes sure R codes year as a number instead of a character
+
+tb_data
+```
+
+If you don't specify the key variables, R will try to find them for you, but it's good practice to specify them yourself.
+
+> **Exercise**
+>
+> Read the CSV file `chinese_gdp` from the data/ folder. Look at it and see what's inside. Using `left_join()`, merge it with `tb_data` by country and year. What happens when `tb_data` is on the left? What happens when `tb_data` is on the right?
+
+```{r merge exercise}
+
+# read Chinese GDP data
+chinese_gdp <- read_csv('data/chinese_gdp.csv')
+
+chinese_gdp
+
+# left_join with tb_data on the left
+# It keeps all the rows from tb_data, and leaves empty all the GDP values where it can't find matches on the key variables
+tb_data %>% 
+  left_join(chinese_gdp, by = c('country', 'year'))
+
+
+# left_join with chinese_gdp on the left
+# keeps all of the GDP data, leaves cases & population missing where it can't find a matching key
+chinese_gdp %>% 
+  left_join(tb_data, by = c('country', 'year'))
+ 
+
+```
+
+## Further Reading
+
+For more on tidy data, see [R4DS Chapter 12](https://r4ds.had.co.nz/tidy-data.html). For more types of merges you can do with `tidyverse`, see [R4DS Chapter 13](https://r4ds.had.co.nz/tidy-data.html).^[I showed you `left_join` because it's really the most common one I use.]
+
+
+# Transforming Data
+
+Once you've imported your dataset(s) and checked to make sure everything is tidy, you may need to transform your dataframe, create new variables, and compute summary statistics. Here are some functions to help with that.
+
+## `filter` and `select`
+
+We've seen `filter` before. Use it to keep rows in your data that meet certain conditions. 
+
+![](img/dplyr_filter.jpg)
+
+Now that you know how to use pipes, it's even nicer! Put your dataframe on the left, then pipe it into the `filter` function. Inside of the parentheses is the logical condition you're using to filter.
+
+```{r filter}
+tb_data %>% 
+  filter(country == 'Afghanistan')
+
+tb_data %>% 
+  filter(country != 'Afghanistan')
+```
+
+> **Exercise**
+> 
+>  Replace the condition in the `filter` function above with:
+>
+> `country %in% c('Afghanistan', 'China')`
+>
+> What happens?
+
+```{r filter with %in%}
+# keep only the rows corresponding to Afghanistan and China
+tb_data %>% 
+  filter(country %in% c('Afghanistan', 'China'))
+```
+
+The `select` function lets you keep (or drop) columns in your dataset.
+
+```{r select}
+wvs %>% 
+  select(B_COUNTRY_ALPHA, Q129, Q158) %>% # select these three columns
+  head(10) # output the first 10 rows
+
+tb_data %>% 
+  select(-cases) # remove the cases variable
+```
+
+> **Exercise**
+>
+> From the WVS dataset, keep only the respondents from the US and Mexico, and show the first 10 rows of the variables Q150 and Q152.
+
+```{r wvs select}
+
+# here's a list of the country codes
+wvs$B_COUNTRY_ALPHA %>% 
+  unique %>% 
+  sort
+
+wvs %>% 
+  filter(B_COUNTRY_ALPHA %in% c('USA', 'MEX')) %>% 
+  select(B_COUNTRY_ALPHA, Q150, Q152) %>% 
+  head(10)
+```
+
+> **Exercise**
+>
+> This is a long one; it'll combine a bunch of skills.
+>
+> Download the [National Material Capabilities](https://correlatesofwar.org/data-sets/national-material-capabilities) dataset from the Correlates of War project. You want NMC v5. Unzip and copy the CSV file into your data/ folder.
+>
+> Load it into R, and merge the most recent year of military expenditures for each country (`milex`, year 2012) into the World Values Survey data. Note that WVS already has the Correlates of War country codes, which you can use as a key.
+>
+> When you're done, return the first 10 rows of the country name, `Q151`, and `milex`.
+
+```{r merge with NMC exercise}
+
+# load NMC
+nmc <- read_csv('data/NMC_5_0.csv') %>% 
+  filter(year == 2012) %>% # keep the most recent year
+  select(ccode, milex) # keep only the country identifier and military expenditures
+
+# make sure the country code has a consistent name across datasets
+wvs$ccode <- wvs$C_COW_NUM
+
+# merge by ccode
+wvs <- wvs %>% 
+  left_join(nmc, by = 'ccode')
+
+wvs %>% 
+  select(B_COUNTRY_ALPHA, Q151, milex) %>% 
+  head(10)
+```
+
+## `mutate`
+
+To create new variables, we use the `mutate` function. Pipe the dataset on the left hand side into the `mutate` function. Inside of the parentheses, separated by commas, are the new variables you want to create. You specify what those new variables will be to the right of the `=` sign using functions and mathematical operators, like so:
+
+```{r mutate}
+tb_data <- tb_data %>% 
+   mutate(cases_per_thousand = cases / population * 1000,
+          country_year = paste0(country, '_', year))
+
+tb_data
+```
+
+![](img/dplyr_mutate.png)
+
+> **Exercise**
+>
+> There is a series of questions in the World Values Survey (Q122-Q129) about how respondents perceive the effect of immigrants on host countries. Create a new variable called `positive_immigration_perceptions`, which is the sum of all those variables. But watch out! For some questions a "2" is a positive perception, and for others a "2" is a negative perception, so you'll need to make adjustments.
+
+
+```{r mutate exercise}
+
+# positive immigration perceptions is the sum of Q122 through Q129
+# but use 2-X for the variables where 2 represents a negative perception
+wvs <- wvs %>% 
+  mutate(positive_immigration_perceptions = 
+           Q122 + Q123 + (2 - Q124) + Q125 + (2 - Q126) + 
+           Q127 + (2 - Q128) + (2 - Q129))
+
+# here's what the distribution of that new variable looks like
+# 16 is the most positive perception of immigrants; 0 is the least positive
+ggplot(wvs) +
+  geom_histogram(aes(x=positive_immigration_perceptions))
+  
+```
+
+## Recoding
+
+There are a bunch of ways to recode variables if you want them in a different format. I showed you one in the `ggplot2` demo:
+
+```{r old recode}
+# load the ANES pilot data
+load('data/anes_pilot_2019.RData')
+
+# Return the first 10 rows of selected variables
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem) %>% 
+  head(10)
+
+# Recode data using conditional statements and indices
+data$partisanship <- data$vote20dem
+data$partisanship[data$vote20dem == 1] <- "Democrat"
+data$partisanship[data$vote20dem == 2] <- "Republican"
+data$partisanship[data$vote20dem == 3] <- "Neither"
+data$partisanship[data$vote20dem == -7] <- NA
+
+# look at it again
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem, partisanship) %>% 
+  head(10)
+```
+
+The problem with that approach is that it's a bit messy and it requires a lot of copying and pasting. Lots of ways for errors to creep in. Here's how to recode variables the `tidyverse` way.
+
+The `case_when()` function is a new one that I just learned about in 2020. The syntax is a bit different, but once you get comfortable with it, you can use it for a **lot** of recoding tasks. Here's how it works:
+
+![](img/dplyr_case_when.png)
+
+```{r case_when 1}
+x <- c(1, 2, 1, 6, 3, 8, 9, 2)
+
+case_when(x == 1 ~ 'Puppies', # when x == 1, return "Puppies"
+          x == 2 ~ 'Kittens', # when x == 2, return "Kitties"
+          TRUE ~ "Other Baby Animals") # for all other values of x, return "Other Baby Animals"
+```
+
+> **Exercise**
+> 
+> Rerun that code, but classify any values greater than 7 as "Otter Pups".
+
+```{r otter pups}
+case_when(x == 1 ~ 'Puppies', # when x == 1, return "Puppies"
+          x == 2 ~ 'Kittens', # when x == 2, return "Kitties"
+          x > 7 ~ 'Otter Pups', # when x > 7, return "Otter Pups"
+          TRUE ~ "Other Baby Animals") # for all other values of x, return "Other Baby Animals"
+```
+
+> **Exercise**
+>
+> Rerun that code, but leave out the `TRUE ~ "Other Baby Animals"` line. What happens?
+
+```{r case_when exercise}
+
+# returns NA for elements in x that don't satisfy any of the conditions
+
+case_when(x == 1 ~ 'Puppies', # when x == 1, return "Puppies"
+          x == 2 ~ 'Kittens', # when x == 2, return "Kitties"
+          x > 7 ~ 'Otter Pups') # when x > 7, return "Otter Pups"
+```
+
+Here's how to apply that to our ANES recoding problem from before:
+
+```{r recode with case_when}
+# reload the ANES pilot data
+load('data/anes_pilot_2019.RData')
+
+# recode with case_when
+data <- data %>% 
+  mutate(partisanship = case_when(vote20dem == 1 ~ 'Democrat',
+                                  vote20dem == 2 ~ 'Republican',
+                                  vote20dem == 3 ~ 'Neither'))
+
+# look at it again!
+data %>% 
+  select(caseid, ftbiden, fttrump, vote20dem, partisanship) %>% 
+  head(10)
+```
+
+Gosh that's a lot tidier...
+
+> **Exercise**
+>
+> In the ANES Pilot study, there is a variable called `lcself`, which asks respondents to place themselves on a 1-7 scale from liberal to conservative. Create a new variable where any respondent with a 1-2 on `lcself` is "Liberal", those with a 3-5 are "Moderate", those with a 6-7 are "Conservative, and all others are NA.
+
+```{r recoding}
+data <- data %>% 
+  mutate(libcon = case_when(lcself %in% 1:2 ~ 'Liberal',
+                            lcself %in% 3:5 ~ 'Moderate',
+                            lcself %in% 6:7 ~ 'Conservative'))
+
+table(data$libcon)
+```
+
+## Putting It All Together
+
+Now that we have pipes, `tidyverse`, and `ggplot`, we can streamline a lot of code.
+
+```{r ggplot 1}
+wvs %>% 
+  filter(B_COUNTRY_ALPHA == 'USA') %>% 
+  mutate(party = case_when(Q223 == '840001' ~ "Republican",
+                           Q223 == '840002' ~ "Democrat",
+                           Q223 == '840004' ~ "Libertarian",
+                           Q223 == '840006' ~ "Green"),
+         willing_to_fight = case_when(Q151 == 1 ~ 'Yes', 
+                                      Q151 == 2 ~'No')) %>% 
+  filter(!is.na(willing_to_fight), 
+         !is.na(party)) %>% 
+  ggplot +
+  geom_bar(mapping = aes(x=willing_to_fight)) + 
+  facet_wrap(~party) +
+  theme_classic() +
+  labs(x = 'Willing to Fight For Your Country?',
+       y = 'Count')
+  
+```
+
+## Exercises
+
+> **Exercise 1**
+>
+> Make sure you understand every step that happened in that last code chunk! If something is confusing, prod your professor.
+
+> **Exercise 2**
+>
+> Using the ANES Pilot data, create a scatter plot of feeling thermometer towards legal immigrants vs. illegal immigrants, faceted by party. Filter out the non-partisans. Make sure to recode partisanship so that it looks nice, and use pipes.
+
+```{r piping into a ggplot exercise}
+data %>% 
+  mutate(partisanship = case_when(vote20dem == 1 ~ 'Democrat',
+                                  vote20dem == 2 ~ 'Republican',
+                                  vote20dem == 3 ~ 'Neither')) %>% 
+  filter(partisanship %in% c('Democrat', 'Republican'),
+         ftillegal %in% 1:100,
+         ftimmig2 %in% 1:100) %>%
+  ggplot + 
+  geom_point(mapping = aes(x=ftillegal, y=ftimmig2)) +
+  facet_wrap(~partisanship) +
+  labs(title = 'Feelings Towards Immigrants',
+       x = 'Illegal Immigrants', y = 'Legal Immigrants')
+```
+
+## Further Reading
+
+For more on data transformation, see [R4DS Chapter 5](https://r4ds.had.co.nz/transform.html).
+
+
+# Summary Statistics and Tables
+
+Now that you've imported your data, tidied it, and exhausted yourself, it's time to compute some **statistics**.
+
+## `summarize()` and `group_by()`
+
+The `summarize`^[You'll often see this function written as `summarise()`, because the tidyverse main author is from New Zealand. Don't feel pressured into using British English, but the option is available to you free of charge.] function creates a new dataframe with summary statistics.
+
+```{r summarize}
+data %>% 
+  filter(fttrump %in% 1:100) %>% 
+  summarize("Mean Trump Feeling" = mean(fttrump),
+            "SD Trump Feeling" = sd(fttrump),
+            "Number of Observations" = n())
+```
+
+This is kind of overkill for a table with two values, but it becomes *really* powerful with paired with another function, `group_by()`, which creates a "grouped" version of the dataset and computes summaries separately for each group.
+
+```{r group_by}
+data %>% 
+  filter(fttrump %in% 1:100) %>% 
+  group_by(partisanship) %>% 
+  summarize("Mean Trump Feeling" = mean(fttrump),
+            "SD Trump Feeling" = sd(fttrump),
+            "Number of Observations" = n())
+```
+
+The `knitr::kable()` function makes those tables nice and pretty when the RMarkdown file is knitted. The `xtable` package is nice for PDF outputs.
+
+```{r kable}
+data %>% 
+  filter(fttrump %in% 1:100) %>% 
+  group_by(partisanship) %>% 
+  summarize("Mean Trump Feeling" = mean(fttrump),
+            "SD Trump Feeling" = sd(fttrump),
+            "Number of Observations" = n()) %>% 
+  kable
+
+```
+
+## Exercises
+
+> **Exercise**
+>
+> Recode the ANES variable called "gender", equal to Male if 1 and Female if 2. Recreate the table above, but group by *both* partisanship and gender (just include both terms with a comma between them).
+
+```{r group_by exercise}
+data %>% 
+  mutate(gender = case_when(gender == 1 ~ 'Male',
+                            gender == 2 ~ 'Female')) %>% 
+  filter(fttrump %in% 1:100,
+         !is.na(partisanship)) %>%
+  group_by(gender, partisanship) %>% 
+  summarize("Mean Trump Feeling" = mean(fttrump),
+            "SD Trump Feeling" = sd(fttrump),
+            "Number of Observations" = n()) %>% 
+  kable
+```
+
+> **Exercise**
+>
+> Here's another long one to test those **skillz**.
+>
+> In the `maps` package, there is a dataframe called `state.fips`. The ANES data uses those codes in the `inputstate` variable, but that's not super useful because I don't know FIPS codes off the top of my head. Merge the ANES data with `state.fips` so that each respondent has the variable `abb` (the state abbreviation). 
+>
+> Create a table of average `pew_religimp` (importance of religion) by state. Include the number of observations per state.
+
+```{r SKILLZ}
+library(maps)
+
+head(state.fips)
+
+data <- data %>% 
+  mutate(fips = inputstate) %>% 
+  left_join(state.fips, by = 'fips')
+
+data %>% 
+  group_by(abb) %>% 
+  summarize(mean_religious_imporantance = mean(pew_religimp),
+            num_observations = n()) %>% 
+  arrange(mean_religious_imporantance) %>% 
+  kable
+```
+
+# References
