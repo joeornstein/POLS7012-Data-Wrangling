@@ -135,7 +135,8 @@ iris <- read_csv('data/iris.csv')
 >
 > Write the `cars` dataframe to a csv file in your data/ folder called `cars.csv`. Try to to open that file with any spreadsheet software, like Excel. Then read it back into an object called `cars2`. 
 
-```{r exercise code}
+```{r}
+# Here's an R code chunk you can use!
 
 ```
 
@@ -304,9 +305,12 @@ tb_data %>%
 
 > **Exercise**
 > 
-> What does the `%in%` operator do? Try to filter `tb_data` based on this condition:
+>  Replace the condition in the `filter` function above with:
 >
 > `country %in% c('Afghanistan', 'China')`
+>
+> What happens?
+
 
 The `select` function lets you keep (or drop) columns in your dataset.
 
@@ -349,7 +353,7 @@ tb_data
 
 > **Exercise**
 >
-> There is a series of questions in the World Values Survey (Q122-Q129) about how respondents perceive the effect of immigrants on host countries. Create a new variable called `immigration_perceptions`, which adds up the number of positive perceptions across all of those questions. Watch out! For some questions a "2" is a positive perception, and for others a "2" is a negative perception, so you'll need to make adjustments. 
+> There is a series of questions in the World Values Survey (Q122-Q129) about how respondents perceive the effect of immigrants on host countries. Create a new variable called `positive_immigration_perceptions`, which is the sum of all those variables. But watch out! For some questions a "2" is a positive perception, and for others a "2" is a negative perception, so you'll need to make adjustments.
 
 
 ## Recoding
@@ -500,6 +504,7 @@ data %>%
             "SD Trump Feeling" = sd(fttrump),
             "Number of Observations" = n()) %>% 
   kable
+
 ```
 
 ## Exercises
