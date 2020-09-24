@@ -11,3 +11,7 @@ data-wrangling-answer-key.html
 data/wvs.csv
 data/NMC_5_0/
 data/NMC_5_0.csv
+
+# don't track .csv's created in the exercises
+data/cars.csv
+data/primary_analysis.csv
