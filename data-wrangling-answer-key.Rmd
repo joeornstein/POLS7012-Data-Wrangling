@@ -420,7 +420,8 @@ To create new variables, we use the `mutate` function. Pipe the dataset on the l
 
 ```{r mutate}
 tb_data <- tb_data %>% 
-   mutate(cases_per_thousand = cases / population * 1000,
+   mutate(people_without_tuberculosis = population - cases,
+          cases_per_thousand = cases / population * 1000,
           country_year = paste0(country, '_', year))
 
 tb_data
