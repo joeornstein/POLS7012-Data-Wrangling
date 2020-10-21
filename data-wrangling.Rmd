@@ -230,7 +230,7 @@ Two problems here.
 We'll solve the first problem with **pivoting** (also known as reshaping), and the second problem with **joining** (also known as merging).
 
 
-## `pivot_longer`
+## Reshaping Data From "Wide" To "Long"
 
 Consider the tuberculosis case counts in `table4a`. We can tidy it up using the `pivot_longer()` function, which takes those values and puts them all into separate rows.
 
@@ -256,7 +256,7 @@ population_data
 
 The inverse function is called `pivot_wider`. It comes up less often, but you can see how it works by typing `?pivot_wider`.
 
-## `left_join`
+## Merging Datasets Together
 
 Now we have two data frames, but we only want one! You can merge any two dataframes together as long as they have a unique **key**  (one or more variables) that tells you which rows belong together. In this case, you want to match all of the rows that share `country` and `year`.
 
@@ -287,7 +287,7 @@ For more on tidy data, see [R4DS Chapter 12](https://r4ds.had.co.nz/tidy-data.ht
 
 Once you've imported your dataset(s) and checked to make sure everything is tidy, you may need to transform your dataframe, create new variables, and compute summary statistics. Here are some functions to help with that.
 
-## `filter` and `select`
+## Keeping Certain Rows and Columns
 
 We've seen `filter` before. Use it to keep rows in your data that meet certain conditions. 
 
@@ -337,7 +337,7 @@ tb_data %>%
 >
 > When you're done, return the first 10 rows of the country name, `Q151`, and `milex`.
 
-## `mutate`
+## Creating New Variables
 
 To create new variables, we use the `mutate` function. Pipe the dataset on the left hand side into the `mutate` function. Inside of the parentheses, separated by commas, are the new variables you want to create. You specify what those new variables will be to the right of the `=` sign using functions and mathematical operators, like so:
 
@@ -356,7 +356,7 @@ tb_data
 > There is a series of questions in the World Values Survey (Q122-Q129) about how respondents perceive the effect of immigrants on host countries. Create a new variable called `positive_immigration_perceptions`, which is the sum of all those variables. But watch out! For some questions a "2" is a positive perception, and for others a "2" is a negative perception, so you'll need to make adjustments.
 
 
-## Recoding
+## Recoding Variables
 
 There are a bunch of ways to recode variables if you want them in a different format. I showed you one in the `ggplot2` demo:
 
@@ -471,7 +471,7 @@ For more on data transformation, see [R4DS Chapter 5](https://r4ds.had.co.nz/tra
 
 Now that you've imported your data, tidied it, and exhausted yourself, it's time to compute some **statistics**.
 
-## `summarize()` and `group_by()`
+## Grouping and Summarizing Data 
 
 The `summarize`^[You'll often see this function written as `summarise()`, because the tidyverse main author is from New Zealand. Don't feel pressured into using British English, but the option is available to you free of charge.] function creates a new dataframe with summary statistics.
 
